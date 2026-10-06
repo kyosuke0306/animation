@@ -135,29 +135,42 @@ def draw_sub(frame, text):
     d.rounded_rectangle((x - 36, y - 22, x + tw + 36, y + 84), radius=26, fill=255, outline=0, width=7)
     d.text((x, y), text, font=f, fill=0, stroke_width=2, stroke_fill=0)
 
-CARD_DELAY, CARD_DROP = 0.2, 0.09
+CARD_DELAY, CARD_DROP = 0.2, 0.07
+RED = (220, 20, 30)
+
+def build_card(text):
+    """Card image (RGBA). The word NOT is drawn bigger and red."""
+    base = 92
+    while True:
+        f, fb = ImageFont.truetype(EN, base), ImageFont.truetype(EN, int(base * 1.45))
+        parts = [(w, fb if w == "NOT" else f) for w in text.split(" ")]
+        meas = ImageDraw.Draw(Image.new("L", (1, 1)))
+        space = meas.textlength(" ", font=f)
+        tw = sum(meas.textlength(w, font=ft) for w, ft in parts) + space * (len(parts) - 1)
+        if tw <= W - 260: break
+        base -= 4
+    hb = int(base * 1.45)
+    card = Image.new("RGBA", (int(tw) + 120, hb + 90), (0, 0, 0, 0))
+    d = ImageDraw.Draw(card)
+    d.rounded_rectangle((5, 5, card.width - 5, card.height - 5), radius=30, fill=(255, 255, 255, 255), outline=(0, 0, 0, 255), width=10)
+    x, baseline = 60, 45 + hb  # align words on a common baseline
+    for w, ft in parts:
+        asc = ft.getmetrics()[0]
+        d.text((x, baseline - asc), w, font=ft, fill=RED + (255,) if w == "NOT" else (0, 0, 0, 255),
+               stroke_width=3 if w == "NOT" else 0, stroke_fill=RED + (255,))
+        x += d.textlength(w, font=ft) + space
+    return card.rotate(-2.5, expand=True, resample=Image.BICUBIC)
 
 def draw_card(frame, text, lt):
-    """Card dropped from above and slapped onto the frame (no fade/zoom)."""
-    size = 96
-    while True:
-        f = ImageFont.truetype(EN, size)
-        tw = int(ImageDraw.Draw(frame).textlength(text, font=f))
-        if tw <= W - 260: break
-        size -= 4
-    card = Image.new("LA", (tw + 120, 190), (0, 0))
-    d = ImageDraw.Draw(card)
-    d.rounded_rectangle((5, 5, tw + 115, 185), radius=30, fill=(255, 255), outline=(0, 255), width=10)
-    d.text((60, 35), text, font=f, fill=(0, 255))
+    """Card slapped onto the screen from the viewer's side: starts huge, slams down to size."""
+    card = build_card(text)
     u = min(1, lt / CARD_DROP)
-    squash = 1.0
-    if lt > CARD_DROP:  # quick squash on impact
-        squash = 1 - 0.12 * max(0, 1 - (lt - CARD_DROP) / 0.1)
-    card = card.resize((card.width, int(card.height * squash)))
-    card = card.rotate(-2.5, expand=True, resample=Image.BICUBIC)
-    y_end = 60 + int(190 * (1 - squash))
-    y = int(-card.height + (y_end + card.height) * u)
-    frame.paste(card.convert("L"), ((W - card.width) // 2, y), card.getchannel("A"))
+    scale = 2.2 - 1.2 * u
+    if lt > CARD_DROP:  # tiny squash on impact
+        scale = 1 - 0.06 * max(0, 1 - (lt - CARD_DROP) / 0.08)
+    c = card.resize((int(card.width * scale), int(card.height * scale)), Image.BICUBIC)
+    cx, cy = W // 2, 60 + card.height // 2
+    frame.paste(c, (cx - c.width // 2, cy - c.height // 2), c)
 
 def render_frame(t):
     s = next(s for s in SHOTS if s["start"] <= t < s["end"]) if t < DURATION else SHOTS[-1]
@@ -166,9 +179,6 @@ def render_frame(t):
     l, m, r = s["fn"](0 if frozen else lt)
     img = compose(l, m, r)
     cx, cy, z = lerp(s["c0"], s["c1"], ease_back(lt / min(s["move"], SNAP)))
-    if not frozen:  # gentle "alive" drift + line boil while on screen
-        if int(t * 12) % 2:
-            cx += 2; cy += 1
     if frozen and 0 <= lt - CARD_DELAY - CARD_DROP < 0.18:  # landing jolt
         k = 1 - (lt - CARD_DELAY - CARD_DROP) / 0.18
         cy += 14 * k * math.sin(lt * 140)
@@ -183,7 +193,7 @@ def render_frame(t):
     cx = min(max(cx, cw / 2), SW - cw / 2) if cw < SW else SW / 2
     cy = min(max(cy, ch / 2), SH - ch / 2)
     box = (cx - cw / 2, cy - ch / 2, cx + cw / 2, cy + ch / 2)
-    frame = img.resize((W, H), Image.LANCZOS, box=box)
+    frame = img.resize((W, H), Image.LANCZOS, box=box).convert("RGB")
     if s["sub"]:
         draw_sub(frame, s["sub"])
     if frozen and lt > CARD_DELAY:
@@ -231,7 +241,7 @@ if __name__ == "__main__":
         for t in sys.argv[1:]:
             render_frame(float(t)).save(OUT / f"still_{t}.png")
         sys.exit()
-    ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "gray", "-s", f"{W}x{H}",
+    ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}",
                            "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-pix_fmt", "yuv420p",
                            "-crf", "18", "-an", str(OUT / "video.mp4")],
                           stdin=subprocess.PIPE)
