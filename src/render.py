@@ -78,6 +78,13 @@ def ease(u):
     u = min(max(u, 0), 1)
     return u * u * (3 - 2 * u)
 
+def ease_back(u, c=1.9):
+    """Fast move that overshoots slightly and settles (snappy cartoon camera)."""
+    u = min(max(u, 0), 1) - 1
+    return 1 + (c + 1) * u ** 3 + c * u ** 2
+
+SNAP = 0.16  # every camera move takes at most this long
+
 def lerp(a, b, u):
     return tuple(x + (y - x) * u for x, y in zip(a, b))
 
@@ -116,7 +123,7 @@ shot(11.8, 13.2, const("H1", "W3", "W3"), L_MED, L_CLOSE, move=0.3)
 shot(13.2, 14.8, const("H1", "H1n", "W3"), L_CLOSE, M_MED, move=0.25, shakes=(13.45, 14.15))
 shot(14.8, 16.0, const("H1", "V2n", "W3"), M_MED, M_CLOSE, move=0.3)
 shot(16.0, 18.0, const("V1", "V2n", "V1"), M_CLOSE, R_CLOSE, move=0.5)
-shot(18.0, 20.0, const("V1", "V2n", "V1"), R_CLOSE, WIDE, move=0.25, card="Which one would you choose?")
+shot(18.0, 20.0, const("V1", "V2n", "V1"), R_CLOSE, WIDE, move=0.25, card="Which one would you NOT want to be?")
 DURATION = SHOTS[-1]["end"]
 
 # ---------------- text ----------------
@@ -128,14 +135,29 @@ def draw_sub(frame, text):
     d.rounded_rectangle((x - 36, y - 22, x + tw + 36, y + 84), radius=26, fill=255, outline=0, width=7)
     d.text((x, y), text, font=f, fill=0, stroke_width=2, stroke_fill=0)
 
-def draw_card(frame, text, u):
-    d = ImageDraw.Draw(frame)
-    size = int(96 * (0.6 + 0.4 * ease(u * 3)))
-    f = ImageFont.truetype(EN, size)
-    tw = d.textlength(text, font=f)
-    x, y = (W - tw) / 2, 70
-    d.rounded_rectangle((x - 50, y - 30, x + tw + 50, y + size + 40), radius=30, fill=255, outline=0, width=10)
-    d.text((x, y), text, font=f, fill=0)
+CARD_DELAY, CARD_DROP = 0.2, 0.09
+
+def draw_card(frame, text, lt):
+    """Card dropped from above and slapped onto the frame (no fade/zoom)."""
+    size = 96
+    while True:
+        f = ImageFont.truetype(EN, size)
+        tw = int(ImageDraw.Draw(frame).textlength(text, font=f))
+        if tw <= W - 260: break
+        size -= 4
+    card = Image.new("LA", (tw + 120, 190), (0, 0))
+    d = ImageDraw.Draw(card)
+    d.rounded_rectangle((5, 5, tw + 115, 185), radius=30, fill=(255, 255), outline=(0, 255), width=10)
+    d.text((60, 35), text, font=f, fill=(0, 255))
+    u = min(1, lt / CARD_DROP)
+    squash = 1.0
+    if lt > CARD_DROP:  # quick squash on impact
+        squash = 1 - 0.12 * max(0, 1 - (lt - CARD_DROP) / 0.1)
+    card = card.resize((card.width, int(card.height * squash)))
+    card = card.rotate(-2.5, expand=True, resample=Image.BICUBIC)
+    y_end = 60 + int(190 * (1 - squash))
+    y = int(-card.height + (y_end + card.height) * u)
+    frame.paste(card.convert("L"), ((W - card.width) // 2, y), card.getchannel("A"))
 
 def render_frame(t):
     s = next(s for s in SHOTS if s["start"] <= t < s["end"]) if t < DURATION else SHOTS[-1]
@@ -143,15 +165,20 @@ def render_frame(t):
     frozen = s["card"] is not None
     l, m, r = s["fn"](0 if frozen else lt)
     img = compose(l, m, r)
-    cx, cy, z = lerp(s["c0"], s["c1"], ease(lt / s["move"]))
+    cx, cy, z = lerp(s["c0"], s["c1"], ease_back(lt / min(s["move"], SNAP)))
     if not frozen:  # gentle "alive" drift + line boil while on screen
         if int(t * 12) % 2:
             cx += 2; cy += 1
+    if frozen and 0 <= lt - CARD_DELAY - CARD_DROP < 0.18:  # landing jolt
+        k = 1 - (lt - CARD_DELAY - CARD_DROP) / 0.18
+        cy += 14 * k * math.sin(lt * 140)
     for st in s["shakes"]:
         if 0 <= t - st < 0.35:
             k = 1 - (t - st) / 0.35
+            z *= 1 + 0.10 * k  # zoom punch
             cx += 28 * k * math.sin((t - st) * 90)
             cy += 18 * k * math.cos((t - st) * 70)
+    z = max(z, 1.0)  # overshoot must never show past the picture edges
     ch = SH / z; cw = ch * W / H
     cx = min(max(cx, cw / 2), SW - cw / 2) if cw < SW else SW / 2
     cy = min(max(cy, ch / 2), SH - ch / 2)
@@ -159,8 +186,8 @@ def render_frame(t):
     frame = img.resize((W, H), Image.LANCZOS, box=box)
     if s["sub"]:
         draw_sub(frame, s["sub"])
-    if frozen and lt > 0.2:
-        draw_card(frame, s["card"], lt - 0.2)
+    if frozen and lt > CARD_DELAY:
+        draw_card(frame, s["card"], lt - CARD_DELAY)
     return frame
 
 # ---------------- audio ----------------
@@ -204,10 +231,9 @@ if __name__ == "__main__":
         for t in sys.argv[1:]:
             render_frame(float(t)).save(OUT / f"still_{t}.png")
         sys.exit()
-    apath = mix(CUES)
     ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "gray", "-s", f"{W}x{H}",
-                           "-r", str(FPS), "-i", "-", "-i", str(apath), "-c:v", "libx264", "-pix_fmt", "yuv420p",
-                           "-crf", "18", "-c:a", "aac", "-b:a", "160k", "-shortest", str(OUT / "video.mp4")],
+                           "-r", str(FPS), "-i", "-", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                           "-crf", "18", "-an", str(OUT / "video.mp4")],
                           stdin=subprocess.PIPE)
     for i in range(int(DURATION * FPS)):
         ff.stdin.write(render_frame(i / FPS).tobytes())
