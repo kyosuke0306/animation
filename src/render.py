@@ -101,22 +101,22 @@ def shot(start, end, fn, c0, c1, move=0.6, shakes=(), sub=None, card=None):
 E = "N2|eyes:{dx}"          # character 3, round 1 (normal), with eye offset template
 P3L = "N2|eyes:-62"         # character 3 looking left
 # ---- round 1
-shot(0.0, 1.4, const("N2", "N2", "N2"), WIDE, WIDE)
-shot(1.4, 2.4, eye_dart("F1a_v2|clean", "N2", "N2", E, at=0.25), WIDE, L_MED, move=0.9, sub="ギターに挑戦！")
-shot(2.4, 3.8, lambda t: ("F1a_v2|clean" if t < 0.35 else "F1b|clean", "N2", P3L), L_MED, L_CLOSE, move=0.3, shakes=(2.75,), sub="…失敗")
-shot(3.8, 5.3, const("F2|clean", "N2", P3L), L_CLOSE, L_MED, move=0.25, shakes=(3.85,), sub="一輪車に挑戦！…失敗")
-shot(5.3, 6.9, const("F3|clean", "N2", P3L), L_MED, L_CLOSE, move=0.25, shakes=(5.35,), sub="絵に挑戦！…また失敗")
-shot(6.9, 9.9, lambda t: ("L1", "L1n" if int(t / 0.22) % 2 == 0 else "L2n", P3L), L_CLOSE, M_MED, move=0.45, shakes=(), sub="ザマアミロ！")
-shot(9.9, 12.4, lambda t: ("D1", "N2" if t < 0.3 else "N2|flip",
-                           "N2|eyes:0:blink" if 1.3 < t < 1.42 else "N2|eyes:0"), M_MED, R_MED, move=0.6, sub="……")
-shot(12.4, 15.0, const("D1", "N2|flip", "N2|eyes:0"), R_MED, WIDE, move=0.35, card="Which one would you choose?")
+shot(0.0, 0.8, const("N2", "N2", "N2"), WIDE, WIDE)
+shot(0.8, 1.6, eye_dart("F1a_v2|clean", "N2", "N2", E, at=0.15), WIDE, L_MED, move=0.3)
+shot(1.6, 2.6, lambda t: ("F1a_v2|clean" if t < 0.2 else "F1b|clean", "N2", P3L), L_MED, L_CLOSE, move=0.2, shakes=(1.8,))
+shot(2.6, 3.6, const("F2|clean", "N2", P3L), L_CLOSE, L_MED, move=0.15, shakes=(2.65,))
+shot(3.6, 4.6, const("F3|clean", "N2", P3L), L_MED, L_CLOSE, move=0.15, shakes=(3.65,))
+shot(4.6, 6.6, lambda t: ("L1", "L1n" if int(t / 0.18) % 2 == 0 else "L2n", P3L), L_CLOSE, M_MED, move=0.25)
+shot(6.6, 8.2, lambda t: ("D1", "N2" if t < 0.2 else "N2|flip",
+                         "N2|eyes:0:blink" if 0.9 < t < 1.02 else "N2|eyes:0"), M_MED, R_MED, move=0.3)
+shot(8.2, 10.2, const("D1", "N2|flip", "N2|eyes:0"), R_MED, WIDE, move=0.25, card="Which one would you choose?")
 # ---- round 2
-shot(15.0, 17.6, const("G1", "W3", "W3"), WIDE, L_MED, move=0.8, sub="少しずつ、できるようになった")
-shot(17.6, 20.0, const("H1", "W3", "W3"), L_MED, L_CLOSE, move=2.4, sub="仲間ができた")
-shot(20.0, 22.6, const("H1", "H1n", "W3"), L_CLOSE, M_MED, move=0.45, shakes=(20.5, 21.4), sub="サイテー！　ブー！")
-shot(22.6, 24.6, const("H1", "V2n", "W3"), M_MED, M_CLOSE, move=2.0, sub="みんな離れていった")
-shot(24.6, 27.6, const("V1", "V2n", "V1"), M_CLOSE, R_CLOSE, move=3.0, sub="……")
-shot(27.6, 30.0, const("V1", "V2n", "V1"), R_CLOSE, WIDE, move=0.4, card="Which one would you choose?")
+shot(10.2, 11.8, const("G1", "W3", "W3"), WIDE, L_MED, move=0.3)
+shot(11.8, 13.2, const("H1", "W3", "W3"), L_MED, L_CLOSE, move=0.3)
+shot(13.2, 14.8, const("H1", "H1n", "W3"), L_CLOSE, M_MED, move=0.25, shakes=(13.45, 14.15))
+shot(14.8, 16.0, const("H1", "V2n", "W3"), M_MED, M_CLOSE, move=0.3)
+shot(16.0, 18.0, const("V1", "V2n", "V1"), M_CLOSE, R_CLOSE, move=0.5)
+shot(18.0, 20.0, const("V1", "V2n", "V1"), R_CLOSE, WIDE, move=0.25, card="Which one would you choose?")
 DURATION = SHOTS[-1]["end"]
 
 # ---------------- text ----------------
@@ -145,8 +145,6 @@ def render_frame(t):
     img = compose(l, m, r)
     cx, cy, z = lerp(s["c0"], s["c1"], ease(lt / s["move"]))
     if not frozen:  # gentle "alive" drift + line boil while on screen
-        z *= 1 + 0.012 * math.sin(t * 2.1)
-        cx += 6 * math.sin(t * 1.7)
         if int(t * 12) % 2:
             cx += 2; cy += 1
     for st in s["shakes"]:
@@ -161,8 +159,8 @@ def render_frame(t):
     frame = img.resize((W, H), Image.LANCZOS, box=box)
     if s["sub"]:
         draw_sub(frame, s["sub"])
-    if frozen and lt > 0.35:
-        draw_card(frame, s["card"], lt - 0.35)
+    if frozen and lt > 0.2:
+        draw_card(frame, s["card"], lt - 0.2)
     return frame
 
 # ---------------- audio ----------------
