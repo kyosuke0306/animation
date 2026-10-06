@@ -116,14 +116,14 @@ shot(3.6, 4.6, const("F3|clean", "N2", P3L), L_MED, L_CLOSE, move=0.15, shakes=(
 shot(4.6, 6.6, lambda t: ("L1", "L1n" if int(t / 0.18) % 2 == 0 else "L2n", P3L), L_CLOSE, M_MED, move=0.25)
 shot(6.6, 8.2, lambda t: ("D1", "N2" if t < 0.2 else "N2|flip",
                          "N2|eyes:0:blink" if 0.9 < t < 1.02 else "N2|eyes:0"), M_MED, R_MED, move=0.3)
-shot(8.2, 10.2, const("D1", "N2|flip", "N2|eyes:0"), R_MED, WIDE, move=0.25, card="Which one are you?")
-# ---- round 2
-shot(10.2, 11.8, const("G1", "W3", "W3"), WIDE, L_MED, move=0.3)
-shot(11.8, 13.2, const("H1", "W3", "W3"), L_MED, L_CLOSE, move=0.3)
-shot(13.2, 14.8, const("H1", "H1n", "W3"), L_CLOSE, M_MED, move=0.25, shakes=(13.45, 14.15))
-shot(14.8, 16.0, const("H1", "V2n", "W3"), M_MED, M_CLOSE, move=0.3)
-shot(16.0, 18.0, const("V1", "V2n", "V1"), M_CLOSE, R_CLOSE, move=0.5)
-shot(18.0, 20.0, const("V1", "V2n", "V1"), R_CLOSE, WIDE, move=0.25, card="Which one would you NOT want to be?")
+shot(8.2, 11.7, const("D1", "N2|flip", "N2|eyes:0"), R_MED, WIDE, move=0.25, card="Which one are you?")
+# ---- round 2: everyone ends badly. Character 1 keeps trying, fails, and people are fed up with him.
+shot(11.7, 13.3, const("R2a", "N2", "W3"), WIDE, L_MED, move=0.3)
+shot(13.3, 14.7, const("R2b", "N2", "W3"), L_MED, L_CLOSE, move=0.3, shakes=(13.35,))
+shot(14.7, 16.3, const("R2b", "H1n", "W3"), L_CLOSE, M_MED, move=0.25, shakes=(14.95, 15.65))
+shot(16.3, 17.5, const("R2b", "V2n", "W3"), M_MED, M_CLOSE, move=0.3)
+shot(17.5, 19.5, const("R2c", "V2n", "V1"), M_CLOSE, R_CLOSE, move=0.5)
+shot(19.5, 23.0, const("R2c", "V2n", "V1"), R_CLOSE, WIDE, move=0.25, card="Which one would you NOT want to be?")
 DURATION = SHOTS[-1]["end"]
 
 # ---------------- text ----------------
