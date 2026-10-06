@@ -10,7 +10,7 @@ CLIPS = {
  "p1_ow":   ("Puck",   "いてっ！うわぁ〜ん！"),
  "p1_crash":("Puck",   "うわっ、うわっ、うわぁぁぁっ！"),
  "p2_laugh":("Fenrir", "ハッハッハッハ！ザマアミロ！アハハハハ！"),
- "crowd_boo":("Charon","ブーーー！ブーーー！サイテー！"),
+ "crowd_boo":("Charon","ブーーー！ブーーーー！"),
  "friends_cheer":("Kore","イェーイ！あはははは！"),
  "p2_gasp": ("Fenrir", "えっ…！？なんで…！？"),
 }

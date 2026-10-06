@@ -114,5 +114,9 @@
  {
   "name": "tts_retries+transcribe",
   "cost": 0.01
+ },
+ {
+  "name": "tts",
+  "cost": 0.0006
  }
 ]
