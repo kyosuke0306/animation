@@ -72,6 +72,7 @@ def compose(l, m, r):
 WIDE = (SW / 2, SH / 2, 1.0)
 L_MED, L_CLOSE = (900, 790, 1.55), (470, 700, 2.0)
 M_MED, M_CLOSE = (1376, 790, 1.55), (1376, 680, 2.0)
+M_WIDE = (1376, 800, 1.25)  # shows the whole middle panel so character 2 stays recognizable
 R_MED, R_CLOSE = (1852, 790, 1.55), (2290, 720, 2.0)
 
 def ease(u):
@@ -121,8 +122,8 @@ shot(8.2, 11.7, const("D1", "N2|flip", "N2|eyes:0"), R_MED, WIDE, move=0.25, car
 shot(11.7, 13.3, const("R2a", "N2", "W3"), WIDE, L_MED, move=0.3)
 shot(13.3, 14.7, const("R2b", "N2", "W3"), L_MED, L_CLOSE, move=0.3, shakes=(13.35,))
 shot(14.7, 16.3, const("R2b", "H1n", "W3"), L_CLOSE, M_MED, move=0.25, shakes=(14.95, 15.65))
-shot(16.3, 17.5, const("R2b", "V2n", "W3"), M_MED, M_CLOSE, move=0.3)
-shot(17.5, 19.5, const("R2c", "V2n", "V1"), M_CLOSE, R_CLOSE, move=0.5)
+shot(16.3, 17.5, const("R2b", "V2n", "W3"), M_MED, M_WIDE, move=0.3)
+shot(17.5, 19.5, const("R2c", "V2n", "V1"), M_WIDE, R_CLOSE, move=0.5)
 shot(19.5, 23.0, const("R2c", "V2n", "V1"), R_CLOSE, WIDE, move=0.25, card="Which one would you NOT want to be?")
 DURATION = SHOTS[-1]["end"]
 
