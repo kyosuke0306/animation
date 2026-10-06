@@ -1,0 +1,4 @@
+out/audio.wav
+out/still_*.png
+__pycache__/
+images/cost_log.lock

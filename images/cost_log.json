@@ -1,0 +1,118 @@
+[
+ {
+  "name": "N0",
+  "cost": 0.127
+ },
+ {
+  "name": "F1a",
+  "cost": 0.129
+ },
+ {
+  "name": "L1",
+  "cost": 0.132
+ },
+ {
+  "name": "D1",
+  "cost": 0.132
+ },
+ {
+  "name": "G1",
+  "cost": 0.137
+ },
+ {
+  "name": "H1",
+  "cost": 0.132
+ },
+ {
+  "name": "V1",
+  "cost": 0.134
+ },
+ {
+  "name": "H2",
+  "cost": 0.126
+ },
+ {
+  "name": "L2",
+  "cost": 0.1247
+ },
+ {
+  "name": "F1a_v2",
+  "cost": 0.1325
+ },
+ {
+  "name": "G1_v2",
+  "cost": 0.1354
+ },
+ {
+  "name": "H2",
+  "cost": 0.1193
+ },
+ {
+  "name": "F1b",
+  "cost": 0.1215
+ },
+ {
+  "name": "F3",
+  "cost": 0.133
+ },
+ {
+  "name": "F2",
+  "cost": 0.1226
+ },
+ {
+  "name": "N1",
+  "cost": 0.1208
+ },
+ {
+  "name": "N2",
+  "cost": 0.1244
+ },
+ {
+  "name": "W1",
+  "cost": 0.1303
+ },
+ {
+  "name": "V2n",
+  "cost": 0.1206
+ },
+ {
+  "name": "W3",
+  "cost": 0.1283
+ },
+ {
+  "name": "H1n",
+  "cost": 0.1363
+ },
+ {
+  "name": "W2",
+  "cost": 0.1261
+ },
+ {
+  "name": "L1n",
+  "cost": 0.1276
+ },
+ {
+  "name": "L2n",
+  "cost": 0.1241
+ },
+ {
+  "name": "tts",
+  "cost": 0.0078
+ },
+ {
+  "name": "tts",
+  "cost": 0.0081
+ },
+ {
+  "name": "tts",
+  "cost": 0.0014
+ },
+ {
+  "name": "tts",
+  "cost": 0.0022
+ },
+ {
+  "name": "tts_retries+transcribe",
+  "cost": 0.01
+ }
+]
