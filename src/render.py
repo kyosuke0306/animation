@@ -136,42 +136,36 @@ def draw_sub(frame, text):
     d.rounded_rectangle((x - 36, y - 22, x + tw + 36, y + 84), radius=26, fill=255, outline=0, width=7)
     d.text((x, y), text, font=f, fill=0, stroke_width=2, stroke_fill=0)
 
-CARD_DELAY, CARD_DROP = 0.2, 0.07
-RED = (220, 20, 30)
+CARD_DELAY, CARD_FADE = 0.35, 0.7
+RED = (190, 30, 40)
+SERIF = "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"
+SERIF_B = "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"
 
 def build_card(text):
-    """Card image (RGBA). The word NOT is drawn bigger and red."""
-    base = 92
-    while True:
-        f, fb = ImageFont.truetype(EN, base), ImageFont.truetype(EN, int(base * 1.45))
-        parts = [(w, fb if w == "NOT" else f) for w in text.split(" ")]
-        meas = ImageDraw.Draw(Image.new("L", (1, 1)))
-        space = meas.textlength(" ", font=f)
-        tw = sum(meas.textlength(w, font=ft) for w, ft in parts) + space * (len(parts) - 1)
-        if tw <= W - 260: break
-        base -= 4
-    hb = int(base * 1.45)
-    card = Image.new("RGBA", (int(tw) + 120, hb + 90), (0, 0, 0, 0))
+    """Quiet caption (RGBA) addressed to the viewer; NOT is red and a little larger."""
+    size = 64
+    f, fb = ImageFont.truetype(SERIF, size), ImageFont.truetype(SERIF_B, int(size * 1.12))
+    parts = [(w, fb if w == "NOT" else f) for w in text.split(" ")]
+    meas = ImageDraw.Draw(Image.new("L", (1, 1)))
+    space = meas.textlength(" ", font=f)
+    tw = sum(meas.textlength(w, font=ft) for w, ft in parts) + space * (len(parts) - 1)
+    hb = int(size * 1.12)
+    card = Image.new("RGBA", (int(tw) + 140, hb + 70), (0, 0, 0, 0))
     d = ImageDraw.Draw(card)
-    d.rounded_rectangle((5, 5, card.width - 5, card.height - 5), radius=30, fill=(255, 255, 255, 255), outline=(0, 0, 0, 255), width=10)
-    x, baseline = 60, 45 + hb  # align words on a common baseline
+    d.rounded_rectangle((0, 0, card.width - 1, card.height - 1), radius=card.height // 2, fill=(255, 255, 255, 240))
+    x, baseline = 70, 30 + hb
     for w, ft in parts:
-        asc = ft.getmetrics()[0]
-        d.text((x, baseline - asc), w, font=ft, fill=RED + (255,) if w == "NOT" else (0, 0, 0, 255),
-               stroke_width=3 if w == "NOT" else 0, stroke_fill=RED + (255,))
+        d.text((x, baseline - ft.getmetrics()[0]), w, font=ft, fill=RED + (255,) if w == "NOT" else (30, 30, 30, 255))
         x += d.textlength(w, font=ft) + space
-    return card.rotate(-2.5, expand=True, resample=Image.BICUBIC)
+    return card
 
 def draw_card(frame, text, lt):
-    """Card slapped onto the screen from the viewer's side: starts huge, slams down to size."""
+    """Fade in gently with a slight rise, near the bottom of the frame."""
     card = build_card(text)
-    u = min(1, lt / CARD_DROP)
-    scale = 2.2 - 1.2 * u
-    if lt > CARD_DROP:  # tiny squash on impact
-        scale = 1 - 0.06 * max(0, 1 - (lt - CARD_DROP) / 0.08)
-    c = card.resize((int(card.width * scale), int(card.height * scale)), Image.BICUBIC)
-    cx, cy = W // 2, 60 + card.height // 2
-    frame.paste(c, (cx - c.width // 2, cy - c.height // 2), c)
+    u = ease(lt / CARD_FADE)
+    alpha = card.getchannel("A").point(lambda v: int(v * u))
+    y = H - card.height - 70 + int(14 * (1 - u))
+    frame.paste(card, ((W - card.width) // 2, y), alpha)
 
 def render_frame(t):
     s = next(s for s in SHOTS if s["start"] <= t < s["end"]) if t < DURATION else SHOTS[-1]
@@ -180,9 +174,6 @@ def render_frame(t):
     l, m, r = s["fn"](0 if frozen else lt)
     img = compose(l, m, r)
     cx, cy, z = lerp(s["c0"], s["c1"], ease_back(lt / min(s["move"], SNAP)))
-    if frozen and 0 <= lt - CARD_DELAY - CARD_DROP < 0.18:  # landing jolt
-        k = 1 - (lt - CARD_DELAY - CARD_DROP) / 0.18
-        cy += 14 * k * math.sin(lt * 140)
     for st in s["shakes"]:
         if 0 <= t - st < 0.35:
             k = 1 - (t - st) / 0.35
