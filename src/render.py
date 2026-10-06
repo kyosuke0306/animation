@@ -109,7 +109,7 @@ shot(3.6, 4.6, const("F3|clean", "N2", P3L), L_MED, L_CLOSE, move=0.15, shakes=(
 shot(4.6, 6.6, lambda t: ("L1", "L1n" if int(t / 0.18) % 2 == 0 else "L2n", P3L), L_CLOSE, M_MED, move=0.25)
 shot(6.6, 8.2, lambda t: ("D1", "N2" if t < 0.2 else "N2|flip",
                          "N2|eyes:0:blink" if 0.9 < t < 1.02 else "N2|eyes:0"), M_MED, R_MED, move=0.3)
-shot(8.2, 10.2, const("D1", "N2|flip", "N2|eyes:0"), R_MED, WIDE, move=0.25, card="Which one would you choose?")
+shot(8.2, 10.2, const("D1", "N2|flip", "N2|eyes:0"), R_MED, WIDE, move=0.25, card="Which one are you?")
 # ---- round 2
 shot(10.2, 11.8, const("G1", "W3", "W3"), WIDE, L_MED, move=0.3)
 shot(11.8, 13.2, const("H1", "W3", "W3"), L_MED, L_CLOSE, move=0.3)

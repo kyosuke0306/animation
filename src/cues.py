@@ -8,7 +8,6 @@ CUES = [
     ("sfx_zip",       6.80, 0.45, 0.0, None),   # character 2 turns toward character 3
     ("sfx_plink",     7.50, 0.40, 0.0, None),   # blink
     ("sfx_stop",      8.22, 0.50, 0.0, None),   # freeze
-    ("sfx_ding",     10.35, 0.50, 0.0, None),
     ("friends_cheer", 11.85, 0.85, 0.1, 1.35),
     ("sfx_wind",     16.00, 0.35, 0.0, 2.2),
     ("sfx_stop",     18.02, 0.40, 0.0, None),   # freeze
